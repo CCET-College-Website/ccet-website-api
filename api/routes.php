@@ -13,7 +13,7 @@ switch ($method) {
     case 'POST':
         break;
 
-    case 'PUT':
+    case 'PATCH':
         break;
 
     case 'DELETE':
