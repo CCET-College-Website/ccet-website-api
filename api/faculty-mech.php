@@ -32,7 +32,7 @@ switch ($method) {
         $address = $conn->real_escape_string($input['address']);
         $resume_link = isset($input['resume_link']) ? $conn->real_escape_string($input['resume_link']) : NULL;
 
-        $sql = "INSERT INTO faculty-mech 
+        $sql = "INSERT INTO `faculty-mech` 
                 (name, img, department, designation, edu, add_role, interest, number, email, address, resume_link)
                 VALUES ('$name','$img','$department','$designation','$edu','$add_role','$interest',
                         '$number','$email','$address',".($resume_link ? "'$resume_link'" : "NULL").")";
@@ -55,7 +55,7 @@ switch ($method) {
             $value = $conn->real_escape_string($value);
             $updates[] = "$key='$value'";
         }
-        $sql = "UPDATE faculty-mech SET ".implode(", ", $updates)." WHERE id=$id";
+        $sql = "UPDATE `faculty-mech` SET ".implode(", ", $updates)." WHERE id=$id";
 
         if ($conn->query($sql)) {
             echo json_encode(["success" => true]);
@@ -70,7 +70,7 @@ switch ($method) {
             break;
         }
         $id = intval($_GET['id']);
-        $sql = "DELETE FROM faculty-mech WHERE id=$id";
+        $sql = "DELETE FROM `faculty-mech` WHERE id=$id";
         if ($conn->query($sql)) {
             echo json_encode(["success" => true]);
         } else {
