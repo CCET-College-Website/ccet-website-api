@@ -10,10 +10,10 @@ switch ($method) {
     case 'GET':
         if (isset($_GET['id'])) {
             $id = intval($_GET['id']);
-            $result = $conn->query("SELECT * FROM faculty-ece WHERE id = $id");
+            $result = $conn->query("SELECT * FROM `faculty-ece` WHERE id = $id");
             $data = $result->fetch_assoc();
         } else {
-            $result = $conn->query("SELECT * FROM faculty-ece");
+            $result = $conn->query("SELECT * FROM `faculty-ece`");
             $data = $result->fetch_all(MYSQLI_ASSOC);
         }
         echo json_encode($data);
@@ -32,7 +32,7 @@ switch ($method) {
         $address = $conn->real_escape_string($input['address']);
         $resume_link = isset($input['resume_link']) ? $conn->real_escape_string($input['resume_link']) : NULL;
 
-        $sql = "INSERT INTO faculty-ece 
+        $sql = "INSERT INTO `faculty-ece`
                 (name, img, department, designation, edu, add_role, interest, number, email, address, resume_link)
                 VALUES ('$name','$img','$department','$designation','$edu','$add_role','$interest',
                         '$number','$email','$address',".($resume_link ? "'$resume_link'" : "NULL").")";
@@ -55,7 +55,7 @@ switch ($method) {
             $value = $conn->real_escape_string($value);
             $updates[] = "$key='$value'";
         }
-        $sql = "UPDATE faculty-ece SET ".implode(", ", $updates)." WHERE id=$id";
+        $sql = "UPDATE `faculty-ece` SET ".implode(", ", $updates)." WHERE id=$id";
 
         if ($conn->query($sql)) {
             echo json_encode(["success" => true]);
@@ -70,7 +70,7 @@ switch ($method) {
             break;
         }
         $id = intval($_GET['id']);
-        $sql = "DELETE FROM faculty-ece WHERE id=$id";
+        $sql = "DELETE FROM `faculty-ece` WHERE id=$id";
         if ($conn->query($sql)) {
             echo json_encode(["success" => true]);
         } else {

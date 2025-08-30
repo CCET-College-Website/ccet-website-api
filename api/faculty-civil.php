@@ -1,4 +1,5 @@
 <?php
+
 include '../server.php';
 
 header("Content-Type: application/json");
@@ -10,13 +11,13 @@ switch ($method) {
     case 'GET':
         if (isset($_GET['id'])) {
             $id = intval($_GET['id']);
-            $result = $conn->query("SELECT * FROM civil WHERE id = $id");
+            $result = $conn->query("SELECT * FROM `faculty-civil` WHERE id = $id");
             $data = $result->fetch_assoc();
         } else {
-            $result = $conn->query("SELECT * FROM civil");
+            $result = $conn->query("SELECT * FROM `faculty-civil`");
             $data = $result->fetch_all(MYSQLI_ASSOC);
         }
-        echo json_encode($data);
+        echo json_encode($data ?? []);
         break;
 
     case 'POST':
@@ -32,7 +33,7 @@ switch ($method) {
         $address = $conn->real_escape_string($input['address']);
         $resume_link = isset($input['resume_link']) ? $conn->real_escape_string($input['resume_link']) : NULL;
 
-        $sql = "INSERT INTO civil 
+        $sql = "INSERT INTO `faculty-civil`
                 (name, img, department, designation, edu, add_role, interest, number, email, address, resume_link)
                 VALUES ('$name','$img','$department','$designation','$edu','$add_role','$interest',
                         '$number','$email','$address',".($resume_link ? "'$resume_link'" : "NULL").")";
@@ -55,7 +56,7 @@ switch ($method) {
             $value = $conn->real_escape_string($value);
             $updates[] = "$key='$value'";
         }
-        $sql = "UPDATE civil SET ".implode(", ", $updates)." WHERE id=$id";
+        $sql = "UPDATE `faculty-civil` SET ".implode(", ", $updates)." WHERE id=$id";
 
         if ($conn->query($sql)) {
             echo json_encode(["success" => true]);
@@ -70,7 +71,7 @@ switch ($method) {
             break;
         }
         $id = intval($_GET['id']);
-        $sql = "DELETE FROM civil WHERE id=$id";
+        $sql = "DELETE FROM `faculty-civil` WHERE id=$id";
         if ($conn->query($sql)) {
             echo json_encode(["success" => true]);
         } else {
