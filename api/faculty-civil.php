@@ -1,4 +1,5 @@
 <?php
+
 include '../server.php';
 
 header("Content-Type: application/json");
@@ -10,13 +11,13 @@ switch ($method) {
     case 'GET':
         if (isset($_GET['id'])) {
             $id = intval($_GET['id']);
-            $result = $conn->query("SELECT * FROM civil WHERE id = $id");
+            $result = $conn->query("SELECT * FROM `faculty-civil` WHERE id = $id");
             $data = $result->fetch_assoc();
         } else {
-            $result = $conn->query("SELECT * FROM civil");
+            $result = $conn->query("SELECT * FROM `faculty-civil`");
             $data = $result->fetch_all(MYSQLI_ASSOC);
         }
-        echo json_encode($data);
+        echo json_encode($data ?? []);
         break;
 
     case 'POST':

@@ -10,10 +10,10 @@ switch ($method) {
     case 'GET':
         if (isset($_GET['id'])) {
             $id = intval($_GET['id']);
-            $result = $conn->query("SELECT * FROM faculty-ece WHERE id = $id");
+            $result = $conn->query("SELECT * FROM `faculty-ece` WHERE id = $id");
             $data = $result->fetch_assoc();
         } else {
-            $result = $conn->query("SELECT * FROM faculty-ece");
+            $result = $conn->query("SELECT * FROM `faculty-ece`");
             $data = $result->fetch_all(MYSQLI_ASSOC);
         }
         echo json_encode($data);
