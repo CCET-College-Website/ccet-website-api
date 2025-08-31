@@ -32,7 +32,7 @@ switch ($method) {
         $address = $conn->real_escape_string($input['address']);
         $resume_link = isset($input['resume_link']) ? $conn->real_escape_string($input['resume_link']) : NULL;
 
-        $sql = "INSERT INTO `faculty-as` 
+        $sql = "INSERT INTO `faculty-as`
                 (name, img, department, designation, edu, add_role, interest, number, email, address, resume_link)
                 VALUES ('$name','$img','$department','$designation','$edu','$add_role','$interest',
                         '$number','$email','$address',".($resume_link ? "'$resume_link'" : "NULL").")";
