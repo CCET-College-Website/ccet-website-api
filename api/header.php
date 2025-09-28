@@ -1,7 +1,7 @@
 <?php
 include '../server.php';
 
-header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Content-Type: application/json");
 
 function createTablesInCcetMaster($conn) {
     // Step 1: Select the ccet_master database (assuming it already exists)
