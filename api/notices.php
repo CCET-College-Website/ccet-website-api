@@ -8,14 +8,41 @@ $input = json_decode(file_get_contents('php://input'), true);
 
 switch ($method) {
     case 'GET':
+        $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+        $limit = isset($_GET['limit']) ? min(100, max(1, intval($_GET['limit']))) : 10;
+        $offset = ($page - 1) * $limit;
+
         if (isset($_GET['keyword'])) {
             $keyword = $conn->real_escape_string($_GET['keyword']);
-            $result = $conn->query("SELECT * FROM notices WHERE title LIKE '%$keyword%' ORDER BY date DESC");
+            
+            $countResult = $conn->query("SELECT COUNT(*) as total FROM notices WHERE title LIKE '%$keyword%'");
+            $totalRecords = $countResult->fetch_assoc()['total'];
+            
+            $result = $conn->query("SELECT * FROM notices WHERE title LIKE '%$keyword%' ORDER BY date DESC LIMIT $limit OFFSET $offset");
+            
             if ($result && $result->num_rows > 0) {
                 $data = $result->fetch_all(MYSQLI_ASSOC);
-                echo json_encode($data);
+                echo json_encode([
+                    "success" => true,
+                    "data" => $data,
+                    "pagination" => [
+                        "page" => $page,
+                        "limit" => $limit,
+                        "total_records" => $totalRecords,
+                        "total_pages" => ceil($totalRecords / $limit)
+                    ]
+                ]);
             } else {
-                echo json_encode(["success" => false, "error" => "No notices found with that keyword"]);
+                echo json_encode([
+                    "success" => false, 
+                    "error" => "No notices found with that keyword",
+                    "pagination" => [
+                        "page" => $page,
+                        "limit" => $limit,
+                        "total_records" => 0,
+                        "total_pages" => 0
+                    ]
+                ]);
             }
         } else {
             $whereClauses = [];
@@ -30,16 +57,30 @@ switch ($method) {
                 $whereClauses[] = "date = '$date'";
             }
 
-            $query = "SELECT * FROM notices";
+            $whereSQL = "";
             if (!empty($whereClauses)) {
-                $query .= " WHERE " . implode(" AND ", $whereClauses);
+                $whereSQL = " WHERE " . implode(" AND ", $whereClauses);
             }
-            $query .= " ORDER BY date DESC";
+
+            $countQuery = "SELECT COUNT(*) as total FROM notices" . $whereSQL;
+            $countResult = $conn->query($countQuery);
+            $totalRecords = $countResult->fetch_assoc()['total'];
+
+            $query = "SELECT * FROM notices" . $whereSQL . " ORDER BY date DESC LIMIT $limit OFFSET $offset";
 
             $result = $conn->query($query);
             if ($result) {
                 $data = $result->fetch_all(MYSQLI_ASSOC);
-                echo json_encode($data);
+                echo json_encode([
+                    "success" => true,
+                    "data" => $data,
+                    "pagination" => [
+                        "page" => $page,
+                        "limit" => $limit,
+                        "total_records" => $totalRecords,
+                        "total_pages" => ceil($totalRecords / $limit)
+                    ]
+                ]);
             } else {
                 echo json_encode(["success" => false, "error" => $conn->error]);
             }
