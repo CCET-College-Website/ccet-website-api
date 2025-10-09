@@ -21,7 +21,7 @@ switch ($method) {
         }
 
         $where = count($conditions) > 0 ? "WHERE " . implode(" AND ", $conditions) : "";
-        $sql = "SELECT * FROM Tenders $where";
+        $sql = "SELECT * FROM tenders $where";
         $result = $conn->query($sql);
 
         $rows = [];
@@ -37,7 +37,7 @@ switch ($method) {
         $link = $conn->real_escape_string($input['link']);
         $date = $conn->real_escape_string($input['date']);
 
-        $sql = "INSERT INTO Tenders (title, link, date) 
+        $sql = "INSERT INTO tenders (title, link, date) 
                 VALUES ('$title', '$link', '$date')";
 
         if ($conn->query($sql)) {
@@ -59,7 +59,7 @@ switch ($method) {
         foreach ($input as $key => $value) {
             $updates[] = "$key = '" . $conn->real_escape_string($value) . "'";
         }
-        $sql = "UPDATE Tenders SET " . implode(", ", $updates) . " WHERE title = '$titleKey'";
+        $sql = "UPDATE tenders SET " . implode(", ", $updates) . " WHERE title = '$titleKey'";
 
         if ($conn->query($sql)) {
             echo json_encode(["success" => true]);
@@ -76,7 +76,7 @@ switch ($method) {
         }
 
         $titleKey = $conn->real_escape_string($_GET['title']);
-        $sql = "DELETE FROM Tenders WHERE title = '$titleKey'";
+        $sql = "DELETE FROM tenders WHERE title = '$titleKey'";
 
         if ($conn->query($sql)) {
             echo json_encode(["success" => true]);
