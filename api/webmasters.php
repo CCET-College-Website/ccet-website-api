@@ -4,76 +4,46 @@ include '../server.php';
 header("Content-Type: application/json");
 
 function createTablesIfNotExist($conn) {
-    // Sports Gallery/Carousel Images Table
-    $createGallery = "CREATE TABLE IF NOT EXISTS sports_gallery (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        image_url VARCHAR(500) NOT NULL,
-        image_alt TEXT,
-        display_order INT DEFAULT 0,
-        is_active BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )";
-
-    if (!$conn->query($createGallery)) {
-        return ["success" => false, "error" => "Failed to create sports_gallery table: " . $conn->error];
-    }
-
-    // Sports Teams Table
-    $createTeams = "CREATE TABLE IF NOT EXISTS sports_teams (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        team_name VARCHAR(255) NOT NULL,
-        captain_name VARCHAR(255) NOT NULL,
-        branch VARCHAR(100) NOT NULL,
-        display_order INT DEFAULT 0,
-        is_active BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )";
-
-    if (!$conn->query($createTeams)) {
-        return ["success" => false, "error" => "Failed to create sports_teams table: " . $conn->error];
-    }
-
-    // Sports Officials Table
-    $createOfficials = "CREATE TABLE IF NOT EXISTS sports_officials (
+    // Faculty Incharges Table
+    $createFacultyIncharge = "CREATE TABLE IF NOT EXISTS webmaster_faculty (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
-        designation VARCHAR(255) NOT NULL,
-        email VARCHAR(255),
-        mobile VARCHAR(20),
+        role VARCHAR(255) NOT NULL,
+        image_url VARCHAR(500),
+        linkedin_url VARCHAR(500),
         display_order INT DEFAULT 0,
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )";
 
-    if (!$conn->query($createOfficials)) {
-        return ["success" => false, "error" => "Failed to create sports_officials table: " . $conn->error];
+    if (!$conn->query($createFacultyIncharge)) {
+        return ["success" => false, "error" => "Failed to create webmaster_faculty table: " . $conn->error];
     }
 
-    // Sports Links/Resources Table
-    $createLinks = "CREATE TABLE IF NOT EXISTS sports_links (
+    // Student Leads Table
+    $createStudentLeads = "CREATE TABLE IF NOT EXISTS webmaster_students (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        link_type VARCHAR(100) NOT NULL,
-        link_text TEXT NOT NULL,
-        link_url VARCHAR(500) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        role TEXT NOT NULL,
+        batch VARCHAR(50) NOT NULL,
+        image_url VARCHAR(500),
+        linkedin_url VARCHAR(500),
+        github_url VARCHAR(500),
         display_order INT DEFAULT 0,
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )";
 
-    if (!$conn->query($createLinks)) {
-        return ["success" => false, "error" => "Failed to create sports_links table: " . $conn->error];
+    if (!$conn->query($createStudentLeads)) {
+        return ["success" => false, "error" => "Failed to create webmaster_students table: " . $conn->error];
     }
 
     // Create Indexes
-    $conn->query("CREATE INDEX IF NOT EXISTS idx_gallery_order ON sports_gallery(display_order, is_active)");
-    $conn->query("CREATE INDEX IF NOT EXISTS idx_teams_order ON sports_teams(display_order, is_active)");
-    $conn->query("CREATE INDEX IF NOT EXISTS idx_officials_order ON sports_officials(display_order, is_active)");
-    $conn->query("CREATE INDEX IF NOT EXISTS idx_links_type ON sports_links(link_type, is_active)");
-    $conn->query("CREATE INDEX IF NOT EXISTS idx_links_order ON sports_links(display_order, is_active)");
+    $conn->query("CREATE INDEX IF NOT EXISTS idx_faculty_order ON webmaster_faculty(display_order, is_active)");
+    $conn->query("CREATE INDEX IF NOT EXISTS idx_students_batch ON webmaster_students(batch, is_active)");
+    $conn->query("CREATE INDEX IF NOT EXISTS idx_students_order ON webmaster_students(display_order, is_active)");
 
     return ["success" => true, "message" => "Tables created/verified successfully"];
 }
@@ -92,15 +62,13 @@ switch ($method) {
         }
 
         if (!$entity) {
-            echo json_encode(["success" => false, "error" => "Entity parameter required (gallery/teams/officials/links)"]);
+            echo json_encode(["success" => false, "error" => "Entity parameter required (faculty/students)"]);
             break;
         }
 
         $tableMap = [
-            'gallery' => 'sports_gallery',
-            'teams' => 'sports_teams',
-            'officials' => 'sports_officials',
-            'links' => 'sports_links'
+            'faculty' => 'webmaster_faculty',
+            'students' => 'webmaster_students'
         ];
 
         if (!isset($tableMap[$entity])) {
@@ -110,22 +78,17 @@ switch ($method) {
 
         $table = $tableMap[$entity];
 
+        // Search by keyword
         if (isset($_GET['keyword'])) {
             $keyword = $conn->real_escape_string($_GET['keyword']);
             $searchFields = [];
 
             switch($entity) {
-                case 'gallery':
-                    $searchFields = ['image_alt'];
+                case 'faculty':
+                    $searchFields = ['name', 'role'];
                     break;
-                case 'teams':
-                    $searchFields = ['team_name', 'captain_name', 'branch'];
-                    break;
-                case 'officials':
-                    $searchFields = ['name', 'designation', 'email'];
-                    break;
-                case 'links':
-                    $searchFields = ['link_type', 'link_text'];
+                case 'students':
+                    $searchFields = ['name', 'role', 'batch'];
                     break;
             }
 
@@ -154,9 +117,9 @@ switch ($method) {
                 $whereClauses[] = "is_active = $is_active";
             }
 
-            if ($entity === 'links' && !empty($_GET['link_type'])) {
-                $linkType = $conn->real_escape_string($_GET['link_type']);
-                $whereClauses[] = "link_type = '$linkType'";
+            if ($entity === 'students' && !empty($_GET['batch'])) {
+                $batch = $conn->real_escape_string($_GET['batch']);
+                $whereClauses[] = "batch = '$batch'";
             }
 
             $query = "SELECT * FROM $table";
@@ -185,15 +148,13 @@ switch ($method) {
         }
 
         if (!$entity) {
-            echo json_encode(["success" => false, "error" => "Entity parameter required (gallery/teams/officials/links)"]);
+            echo json_encode(["success" => false, "error" => "Entity parameter required (faculty/students)"]);
             break;
         }
 
         $tableMap = [
-            'gallery' => 'sports_gallery',
-            'teams' => 'sports_teams',
-            'officials' => 'sports_officials',
-            'links' => 'sports_links'
+            'faculty' => 'webmaster_faculty',
+            'students' => 'webmaster_students'
         ];
 
         if (!isset($tableMap[$entity])) {
@@ -205,17 +166,11 @@ switch ($method) {
 
         $requiredFields = [];
         switch($entity) {
-            case 'gallery':
-                $requiredFields = ['image_url'];
+            case 'faculty':
+                $requiredFields = ['name', 'role'];
                 break;
-            case 'teams':
-                $requiredFields = ['team_name', 'captain_name', 'branch'];
-                break;
-            case 'officials':
-                $requiredFields = ['name', 'designation'];
-                break;
-            case 'links':
-                $requiredFields = ['link_type', 'link_text', 'link_url'];
+            case 'students':
+                $requiredFields = ['name', 'role', 'batch'];
                 break;
         }
 
@@ -279,15 +234,13 @@ switch ($method) {
         }
 
         if (!$entity) {
-            echo json_encode(["success" => false, "error" => "Entity parameter required (gallery/teams/officials/links)"]);
+            echo json_encode(["success" => false, "error" => "Entity parameter required (faculty/students)"]);
             break;
         }
 
         $tableMap = [
-            'gallery' => 'sports_gallery',
-            'teams' => 'sports_teams',
-            'officials' => 'sports_officials',
-            'links' => 'sports_links'
+            'faculty' => 'webmaster_faculty',
+            'students' => 'webmaster_students'
         ];
 
         if (!isset($tableMap[$entity])) {
@@ -302,17 +255,17 @@ switch ($method) {
             $id = (int)$_GET['id'];
             $whereClauses[] = "id = $id";
         }
-        if (!empty($_GET['link_type']) && $entity === 'links') {
-            $linkType = $conn->real_escape_string($_GET['link_type']);
-            $whereClauses[] = "link_type = '$linkType'";
+        if (!empty($_GET['batch']) && $entity === 'students') {
+            $batch = $conn->real_escape_string($_GET['batch']);
+            $whereClauses[] = "batch = '$batch'";
         }
         if (!empty($_GET['keyword'])) {
             $keyword = $conn->real_escape_string($_GET['keyword']);
-            $whereClauses[] = "(team_name LIKE '%$keyword%' OR captain_name LIKE '%$keyword%' OR name LIKE '%$keyword%' OR designation LIKE '%$keyword%' OR link_text LIKE '%$keyword%')";
+            $whereClauses[] = "(name LIKE '%$keyword%' OR role LIKE '%$keyword%')";
         }
 
         if (empty($whereClauses)) {
-            echo json_encode(["success" => false, "error" => "No filter provided (id/link_type/keyword required)"]);
+            echo json_encode(["success" => false, "error" => "No filter provided (id/batch/keyword required)"]);
             break;
         }
 
@@ -354,15 +307,13 @@ switch ($method) {
         }
 
         if (!$entity) {
-            echo json_encode(["success" => false, "error" => "Entity parameter required (gallery/teams/officials/links)"]);
+            echo json_encode(["success" => false, "error" => "Entity parameter required (faculty/students)"]);
             break;
         }
 
         $tableMap = [
-            'gallery' => 'sports_gallery',
-            'teams' => 'sports_teams',
-            'officials' => 'sports_officials',
-            'links' => 'sports_links'
+            'faculty' => 'webmaster_faculty',
+            'students' => 'webmaster_students'
         ];
 
         if (!isset($tableMap[$entity])) {
@@ -377,17 +328,17 @@ switch ($method) {
             $id = (int)$_GET['id'];
             $whereClauses[] = "id = $id";
         }
-        if (!empty($_GET['link_type']) && $entity === 'links') {
-            $linkType = $conn->real_escape_string($_GET['link_type']);
-            $whereClauses[] = "link_type = '$linkType'";
+        if (!empty($_GET['batch']) && $entity === 'students') {
+            $batch = $conn->real_escape_string($_GET['batch']);
+            $whereClauses[] = "batch = '$batch'";
         }
         if (!empty($_GET['keyword'])) {
             $keyword = $conn->real_escape_string($_GET['keyword']);
-            $whereClauses[] = "(team_name LIKE '%$keyword%' OR captain_name LIKE '%$keyword%' OR name LIKE '%$keyword%' OR designation LIKE '%$keyword%' OR link_text LIKE '%$keyword%')";
+            $whereClauses[] = "(name LIKE '%$keyword%' OR role LIKE '%$keyword%')";
         }
 
         if (empty($whereClauses)) {
-            echo json_encode(["success" => false, "error" => "No filter provided (id/link_type/keyword required)"]);
+            echo json_encode(["success" => false, "error" => "No filter provided (id/batch/keyword required)"]);
             break;
         }
 
